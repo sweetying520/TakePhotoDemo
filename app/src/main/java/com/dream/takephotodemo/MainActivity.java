@@ -62,11 +62,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         ivAvatar = findViewById(R.id.iv_avatar);
 
         rootFile = new File(MyConstant.PIC_PATH);
-        if(!rootFile.exists()){
+        if (!rootFile.exists()) {
             rootFile.mkdirs();
         }
     }
-
 
     public void btnClick(View view) {
         if (profilePictureDialog == null) {
@@ -92,14 +91,15 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         @Override
         public void onClick(View v) {
             dismissProfilePictureDialog();
-            if (EasyPermissions.hasPermissions(mContext, PERMISSION_CAMERA,PERMISSION_WRITE)) {
+            if (EasyPermissions.hasPermissions(mContext, PERMISSION_CAMERA, PERMISSION_WRITE)) {
                 takePhoto();
             } else {
-                EasyPermissions.requestPermissions(MainActivity.this, "need camera permission", REQUEST_PERMISSION_CAMERA, PERMISSION_CAMERA,PERMISSION_WRITE);
+                EasyPermissions.requestPermissions(MainActivity.this, "need camera permission", REQUEST_PERMISSION_CAMERA, PERMISSION_CAMERA, PERMISSION_WRITE);
             }
         }
     };
 
+    //拍照
     private void takePhoto() {
         //用于保存调用相机拍照后所生成的文件
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -108,12 +108,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         captureFile = new File(rootFile, "temp.jpg");
         //跳转到调用系统相机
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        //判断版本
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {   //如果在Android7.0以上,使用FileProvider获取Uri
+        //判断版本 如果在Android7.0以上,使用FileProvider获取Uri
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             Uri contentUri = FileProvider.getUriForFile(mContext, getPackageName(), captureFile);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
-        } else {    //否则使用Uri.fromFile(file)方法获取Uri
+        } else {
+            //否则使用Uri.fromFile(file)方法获取Uri
             intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(captureFile));
         }
         startActivityForResult(intent, REQUEST_PERMISSION_CAMERA);
@@ -138,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     }
 
 
+    //从相册选择
     private void choosePhoto() {
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         photoPickerIntent.setType("image/*");
@@ -157,42 +159,21 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
      * 裁剪图片
      */
     private void cropPhoto(Uri uri) {
-        /**
-         * 裁剪使用return data获得bitmap
-         */
+        cropFile = new File(rootFile, "avatar.jpg");
         Intent intent = new Intent("com.android.camera.action.CROP");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         intent.setDataAndType(uri, "image/*");
         intent.putExtra("crop", "true");
         intent.putExtra("aspectX", 1);
         intent.putExtra("aspectY", 1);
         intent.putExtra("outputX", 300);
         intent.putExtra("outputY", 300);
-        intent.putExtra("return-data", true);
+        intent.putExtra("return-data", false);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cropFile));
+        intent.putExtra("outputFormat", Bitmap.CompressFormat.PNG.toString());
+        intent.putExtra("noFaceDetection", true);
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         startActivityForResult(intent, CROP_REQUEST_CODE);
-
-        //调用系统拍照  先判断权限 进行裁剪 最后进行压缩
-
-
-        /**
-         * 不适用return data
-         */
-
-//        cropFile = new File(rootFile, "avatar.png");
-//        Intent intent = new Intent("com.android.camera.action.CROP");
-//        intent.setDataAndType(uri, "image/*");
-//        intent.putExtra("crop", "true");
-//        intent.putExtra("aspectX", 1);
-//        intent.putExtra("aspectY", 1);
-//        intent.putExtra("outputX", 300);
-//        intent.putExtra("outputY", 300);
-//        intent.putExtra("return-data", false);
-//        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cropFile));
-//        intent.putExtra("outputFormat", Bitmap.CompressFormat.PNG.toString());
-//        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//        startActivityForResult(intent, CROP_REQUEST_CODE);
     }
 
     @Override
@@ -211,41 +192,21 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     cropPhoto(data.getData());
                     break;
                 case CROP_REQUEST_CODE:
-                    Bundle bundle = data.getExtras();
-                    if (bundle != null) {
-                        //在这里获得了剪裁后的Bitmap对象，可以用于上传
-                        Bitmap image = bundle.getParcelable("data");
-                        ivAvatar.setImageBitmap(image);
-                        Toast.makeText(mContext, "保存成功", Toast.LENGTH_SHORT).show();
-                        saveImage(image);
-                    }
-//                    saveImage(cropFile.getAbsolutePath());
-//                    ivAvatar.setImageBitmap(BitmapFactory.decodeFile(cropFile.getAbsolutePath()));
+                    saveImage(cropFile.getAbsolutePath());
+                    ivAvatar.setImageBitmap(BitmapFactory.decodeFile(cropFile.getAbsolutePath()));
                     break;
-                    default:
-                        break;
+                default:
+                    break;
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    public String saveImage(Bitmap bitmap) {
-        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            return null;
-        }
-        File file = new File(MyConstant.PIC_PATH, "avatar.jpg");
-        try {
-            FileOutputStream fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            fos.flush();
-            fos.close();
-            return file.getAbsolutePath();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
+    /**
+     * @param path
+     * @return
+     */
     public String saveImage(String path) {
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             return null;

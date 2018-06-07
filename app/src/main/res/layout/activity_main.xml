@@ -7,7 +7,6 @@
     tools:context="com.dream.takephotodemo.MainActivity">
 
 
-
     <ImageView
         android:layout_centerInParent="true"
         android:id="@+id/iv_avatar"
