@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-path path="pic" name="image" />
+    <external-path path="." name="er" />
 </paths>
