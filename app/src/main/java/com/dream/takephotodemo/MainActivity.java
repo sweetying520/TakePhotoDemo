@@ -54,8 +54,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        super.onCreate(savedInstanceState);
+
 
         mContext = this;
 
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     }
 
     public void btnClick(View view) {
+
         if (profilePictureDialog == null) {
             @SuppressLint("InflateParams") View rootView = LayoutInflater.from(this).inflate(R.layout.item_profile_picture, null);
             AlertDialog.Builder builder = new AlertDialog.Builder(this);

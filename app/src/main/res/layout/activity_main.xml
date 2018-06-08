@@ -7,6 +7,8 @@
     tools:context="com.dream.takephotodemo.MainActivity">
 
 
+    <include layout="@layout/toolbar_layout"/>
+
     <ImageView
         android:layout_centerInParent="true"
         android:id="@+id/iv_avatar"
